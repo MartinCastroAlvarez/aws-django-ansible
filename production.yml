@@ -1,0 +1,13 @@
+---
+
+all:
+  hosts:
+    52.26.180.8
+  vars:
+    HOME_DIR: "/home/ubuntu"
+    DJANGO_DIR: "{{ HOME_DIR }}/django"
+    STATIC_DIR: "{{ HOME_DIR }}/static"
+    PROJECT_NAME: "my_app"
+    DB_NAME: "django"
+    DB_USER: "django"
+    DB_PASS: "loremipsum"

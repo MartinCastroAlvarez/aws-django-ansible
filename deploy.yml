@@ -1,0 +1,75 @@
+- hosts: all
+  gather_facts: no
+  remote_user: ec2-user
+  become: yes
+  vars:
+    ansible_ssh_user: 'test'
+    ansible_password: 'test'
+    ansible_port: '2222'
+  tasks:
+
+   - name: Upgrade all apt packages
+     apt: upgrade=dist force_apt_get=yes
+
+   - name: Create ubuntu user
+     user: name=ubuntu generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
+
+   - name: Reading SSH public key
+     slurp: src=/home/ubuntu/.ssh/id_rsa.pub
+     register: public_key
+
+   - debug: msg="{{ public_key['content'] | b64decode }}"
+
+   - name: Running apt update
+     apt: update_cache=yes
+
+   - name: installing required packages
+     apt: name={{ item }} state=present
+     with_items:
+       - fail2ban
+       - postgresql
+       - postgresql-client
+       - git
+       - curl
+       - python3
+       - python3-pip
+       - rdiff-backup
+       - libpq-dev
+       - uwsgi
+       - nginx
+       - vim
+       - uwsgi-plugin-python3
+
+   - name: pull branch master
+     git:
+       repo={{ REPO_URL }}
+       dest={{ DJANGO_DIR }}
+       accept_hostkey=yes
+       version=main
+
+   - name: Change log file permissions
+     file:
+        path: /tmp/analytics.log
+        mode: "777"
+
+   - name: install python requirements
+     pip: requirements={{ DJANGO_DIR }}/requirements.txt extra_args=--upgrade
+
+   - name: create static_root dir
+     file: path={{ STATIC_DIR }} state=directory mode=0755
+   - name: django collectstatic
+     shell: python3 manage.py collectstatic --noinput chdir={{ DJANGO_DIR }}
+   - name: django migrate
+     shell: python3 manage.py migrate --noinput chdir={{ DJANGO_DIR }}
+
+   - name: nginx config file
+     template: src=nginx.conf dest=/etc/nginx/sites-enabled/default
+   - name: nginx config file
+     template: src=nginx.conf dest=/etc/nginx/sites-available/default
+   - name: nginx restart
+     service: name=nginx state=restarted
+
+   - name: uwsgi config file
+     template: src=uwsgi.ini dest=/etc/uwsgi/apps-enabled/django.ini
+   - name: uwsgi restart
+     service: name=uwsgi state=restarted

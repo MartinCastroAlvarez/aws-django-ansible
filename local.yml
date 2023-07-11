@@ -1,0 +1,25 @@
+- name: ec2
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+
+    - name: launch new instance
+      amazon.aws.ec2_instance:
+        name: AnsibleTest
+        key_name: Ansible
+        instance_type: t2.micro
+        region: us-west-2
+        wait: yes
+        count: 1
+        network:
+          assign_public_ip: true
+          delete_on_termination: true
+        image_id: ami-0507f77897697c4ba
+        user_data: "{{ lookup('file', 'user_data.sh') }}"
+        volumes: 
+          - device_name: /dev/xvda
+            ebs: 
+              volume_size: 8
+              volume_type: gp2
+              delete_on_termination: true

@@ -1,0 +1,14 @@
+---
+
+all:
+  hosts:
+    0.0.0.0
+  vars:
+    HOME_DIR: "/home/ubuntu"
+    DJANGO_DIR: "{{ HOME_DIR }}/django-data-analytics"
+    STATIC_DIR: "{{ HOME_DIR }}/static"
+    PROJECT_NAME: "analytics"
+    DB_NAME: "django"
+    DB_USER: "django"
+    DB_PASS: "loremipsum"
+    REPO_URL: https://github.com/MartinCastroAlvarez/django-data-analytics
